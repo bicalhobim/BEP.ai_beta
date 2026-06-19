@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Download, FileDown, Upload, Loader2, Sparkles, Save, FolderOpen } from 'lucide-react';
 import { exportToPDF } from './lib/export';
 import { extractTextFromPDF } from './lib/pdf';
-import { analyzeFullBEP } from './lib/gemini';
 
 // Code-split the IFC viewer: three.js + ThatOpen are heavy and shouldn't be in
 // the initial bundle.
@@ -19,7 +18,7 @@ const IfcAnalysis = lazy(() =>
 );
 
 function App() {
-  const { blocks, reorderBlocks, updateBlockContent, expandAllBlocks, setIsoContext, isoContext, loadProject, activeView } = useBEPStore();
+  const { blocks, reorderBlocks, expandAllBlocks, setIsoContext, isoContext, loadProject, activeView } = useBEPStore();
   const [isImporting, setIsImporting] = useState(false);
 
   const sensors = useSensors(
@@ -164,27 +163,14 @@ function App() {
 
     setIsImporting(true);
     try {
-      // 1. Extract text
+      // Extrai o texto do PDF e guarda como contexto. O preenchimento agora é
+      // feito por seção (botão "Gerar IA" em cada bloco), o que reduz a variância.
       const text = await extractTextFromPDF(file);
-      setIsoContext(text); // Save context for AI suggestions
-      
-      // 2. Analyze with AI
-      const result = await analyzeFullBEP(text);
-      const parsedData = JSON.parse(result);
-
-      // 3. Populate blocks
-      // We iterate over the keys in parsedData and update corresponding blocks
-      Object.keys(parsedData).forEach(key => {
-        const block = blocks.find(b => b.type === key);
-        if (block) {
-          updateBlockContent(block.id, parsedData[key]);
-        }
-      });
-
-      alert("Dados importados com sucesso! Revise os campos preenchidos.");
+      setIsoContext(text);
+      alert('Documento importado! Use o botão "Gerar IA" em cada seção do BEP para preencher a partir dele.');
     } catch (error) {
       console.error("Global Import Failed", error);
-      alert("Falha na importação. Verifique o arquivo ou a chave de API.");
+      alert("Falha na importação do PDF.");
     } finally {
       setIsImporting(false);
     }
@@ -243,7 +229,7 @@ function App() {
                         className={`flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors shadow-sm font-medium text-sm cursor-pointer ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                        {isImporting ? "Analisando..." : "Importar EIR (PDF)"}
+                        {isImporting ? "Importando..." : "Importar Documento (PDF)"}
                       </label>
                     </div>
 

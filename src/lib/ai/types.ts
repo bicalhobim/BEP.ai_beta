@@ -12,6 +12,10 @@ export interface GenerateRequest {
   json?: boolean;
   /** Which configured model tier to use. Defaults to 'fast'. */
   tier?: ModelTier;
+  /** Sampling temperature. Lower = more deterministic. Defaults to a low value. */
+  temperature?: number;
+  /** Fixed seed for reproducible outputs (provider permitting). */
+  seed?: number;
 }
 
 export interface AIProvider {

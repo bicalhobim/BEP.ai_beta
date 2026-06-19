@@ -21,13 +21,14 @@ export const geminiProvider: AIProvider = {
     return Boolean(apiKey);
   },
 
-  async generate({ prompt, system, json, tier = 'fast' }: GenerateRequest): Promise<string> {
+  async generate({ prompt, system, json, tier = 'fast', temperature = 0.2 }: GenerateRequest): Promise<string> {
     const ai = getClient();
 
     const response = await ai.models.generateContent({
       model: GEMINI_MODELS[tier],
       contents: prompt,
       config: {
+        temperature,
         ...(system ? { systemInstruction: system } : {}),
         responseMimeType: json ? 'application/json' : 'text/plain',
       },

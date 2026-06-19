@@ -14,7 +14,14 @@ export const groqProvider: AIProvider = {
     return Boolean(apiKey);
   },
 
-  async generate({ prompt, system, json, tier = 'fast' }: GenerateRequest): Promise<string> {
+  async generate({
+    prompt,
+    system,
+    json,
+    tier = 'fast',
+    temperature = 0.2,
+    seed = 42,
+  }: GenerateRequest): Promise<string> {
     if (!apiKey) throw new Error('GROQ_API_KEY não configurada.');
 
     const messages: Array<{ role: string; content: string }> = [];
@@ -30,6 +37,11 @@ export const groqProvider: AIProvider = {
       body: JSON.stringify({
         model: GROQ_MODELS[tier],
         messages,
+        // Determinismo: temperatura baixa + seed fixo reduzem a variância entre
+        // execuções com o mesmo documento.
+        temperature,
+        top_p: 1,
+        seed,
         // JSON Object mode: requires the prompt to mention "json" (ours do).
         ...(json ? { response_format: { type: 'json_object' } } : {}),
       }),
