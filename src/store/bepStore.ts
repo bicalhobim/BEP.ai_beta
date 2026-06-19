@@ -1,18 +1,24 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  listProjectsMeta,
+  readProjectData,
+  writeProjectData,
+  deleteProjectData,
+  type ProjectMeta,
+} from '../lib/projects';
 
-export type BlockType = 
-  | 'general_project' 
-  | 'general_team' 
-  | 'responsibility_matrix' 
-  | 'deliverables_matrix' 
-  | 'bim_uses_goals' 
-  | 'bim_uses_infra' 
-  | 'project_requirements' 
-  | 'schedule' 
-  | 'roles_responsibilities' 
-  | 'references' 
+export type BlockType =
+  | 'general_project'
+  | 'general_team'
+  | 'responsibility_matrix'
+  | 'deliverables_matrix'
+  | 'bim_uses_goals'
+  | 'bim_uses_infra'
+  | 'project_requirements'
+  | 'schedule'
+  | 'roles_responsibilities'
+  | 'references'
   | 'attachments';
 
 export interface BlockData {
@@ -33,38 +39,20 @@ export interface Milestone {
   status: 'todo' | 'in_progress' | 'done';
 }
 
-interface BEPState {
-  blocks: BlockData[];
-  isoContext: string; // Store extracted ISO text for context
-  activeView: 'home' | 'editor' | 'kanban' | 'ifc';
-  setActiveView: (view: 'home' | 'editor' | 'kanban' | 'ifc') => void;
-  setIsoContext: (text: string) => void;
-  loadProject: (data: { blocks: BlockData[]; isoContext?: string }) => void;
-  addBlock: (type: BlockType) => void;
-  removeBlock: (id: string) => void;
-  updateBlock: (id: string, data: Partial<BlockData>) => void;
-  updateBlockContent: (id: string, content: any) => void;
-  reorderBlocks: (oldIndex: number, newIndex: number) => void;
-  toggleBlock: (id: string) => void;
-  expandAllBlocks: () => void;
-}
-
-export const useBEPStore = create<BEPState>()(
-  persist(
-    (set) => ({
-  blocks: [
+/** Blocos padrão de um BEP novo (cópia fresca a cada chamada). */
+export function createDefaultBlocks(): BlockData[] {
+  return [
     {
       id: '1',
       type: 'general_project',
       title: '1. INFORMAÇÕES GERAIS DO PROJETO',
       content: {
-        // Tabela 1
         project_name: '',
         address: '',
         neighborhood: '',
         municipality: '',
-        contract_number: '', // Número do Edital
-        client_name: '', // Órgão Contratante
+        contract_number: '',
+        client_name: '',
         modality: '',
         intended_use: '',
         target_audience: '',
@@ -76,13 +64,11 @@ export const useBEPStore = create<BEPState>()(
         construction_area: '',
         floors_count: '',
         population_forecast: '',
-        // Requisitos ISO 19650
         oir_description: '',
         eir_description: '',
-        // Tabela 2
         bidder_company: '',
         bidder_representatives: ['', ''],
-        proposal_date: ''
+        proposal_date: '',
       },
       isExpanded: true,
     },
@@ -90,8 +76,7 @@ export const useBEPStore = create<BEPState>()(
       id: '2',
       type: 'general_team',
       title: '2. INFORMAÇÕES GERAIS – EQUIPE DO PROJETO',
-      content: { 
-        // Tabela 3
+      content: {
         contractor_team: [
           { role: 'CONTRATANTE', name: '', education: '', email: '', phone: '' },
           { role: 'GESTOR (CONTRATO)', name: '', education: '', email: '', phone: '' },
@@ -104,7 +89,7 @@ export const useBEPStore = create<BEPState>()(
           { role: 'RESPONSÁVEL TÉCNICO (INF.)', name: '', education: '', email: '', phone: '' },
           { role: 'RESPONSÁVEL TÉCNICO (MEP.)', name: '', education: '', email: '', phone: '' },
           { role: 'OUTRAS DISCIPLINAS', name: '', education: '', email: '', phone: '' },
-        ]
+        ],
       },
       isExpanded: false,
     },
@@ -112,8 +97,7 @@ export const useBEPStore = create<BEPState>()(
       id: '3',
       type: 'responsibility_matrix',
       title: '3. MATRIZ DE RESPONSABILIDADES',
-      content: { 
-        // Tabela 4
+      content: {
         technical_team: [
           { role: 'COORDENADOR BIM (BIM MANAGER)', name: '', registry: '', email: '', phone: '' },
           { role: 'RESPONSÁVEL TÉCNICO (ARQ.)', name: '', registry: '', email: '', phone: '' },
@@ -121,7 +105,7 @@ export const useBEPStore = create<BEPState>()(
           { role: 'RESPONSÁVEL TÉCNICO (ENG.)', name: '', registry: '', email: '', phone: '' },
           { role: 'RESPONSÁVEL TÉCNICO (ENG.)', name: '', registry: '', email: '', phone: '' },
           { role: 'OUTRAS DISCIPLINAS', name: '', registry: '', email: '', phone: '' },
-        ]
+        ],
       },
       isExpanded: false,
     },
@@ -129,10 +113,8 @@ export const useBEPStore = create<BEPState>()(
       id: '4',
       type: 'deliverables_matrix',
       title: '4. MATRIZ DE ENTREGÁVEIS',
-      content: { 
-        deliverables: [
-          { phase: '', discipline: '', deliverable: '', formats: '', responsible: '' },
-        ] 
+      content: {
+        deliverables: [{ phase: '', discipline: '', deliverable: '', formats: '', responsible: '' }],
       },
       isExpanded: false,
     },
@@ -140,11 +122,8 @@ export const useBEPStore = create<BEPState>()(
       id: '5',
       type: 'bim_uses_goals',
       title: '5. USOS BIM (OBJETIVOS ORGANIZACIONAIS)',
-      content: { 
-        // Tabela 5
-        goals: [
-          { priority: '', objective: '', uses: '' },
-        ]
+      content: {
+        goals: [{ priority: '', objective: '', uses: '' }],
       },
       isExpanded: false,
     },
@@ -152,15 +131,9 @@ export const useBEPStore = create<BEPState>()(
       id: '6',
       type: 'bim_uses_infra',
       title: '6. USOS BIM (INFRAESTRUTURA TECNOLÓGICA)',
-      content: { 
-        // Tabela 6
-        software_tools: [
-          { use: '', platform: '', version: '', extension: '' },
-        ],
-        // Tabela 7
-        hardware_requirements: [
-          { purpose: '', cpu: '', ram: '', gpu: '', os: '', hd: '' },
-        ]
+      content: {
+        software_tools: [{ use: '', platform: '', version: '', extension: '' }],
+        hardware_requirements: [{ purpose: '', cpu: '', ram: '', gpu: '', os: '', hd: '' }],
       },
       isExpanded: false,
     },
@@ -168,11 +141,8 @@ export const useBEPStore = create<BEPState>()(
       id: '7',
       type: 'project_requirements',
       title: '7. REQUISITOS DO PROJETO (LOIN / LOD)',
-      content: { 
-        // Tabela 8
-        requirements: [
-          { phase: '', lod: '', loin: '' },
-        ]
+      content: {
+        requirements: [{ phase: '', lod: '', loin: '' }],
       },
       isExpanded: false,
     },
@@ -180,10 +150,10 @@ export const useBEPStore = create<BEPState>()(
       id: '8',
       type: 'schedule',
       title: '8. PRINCIPAIS MARCOS DO PROJETO',
-      content: { 
+      content: {
         milestones: [
           { id: uuidv4(), item: '1.0', description: 'Início do Projeto', duration: '1 dia', start: '', end: '', status: 'todo' },
-        ] 
+        ],
       },
       isExpanded: false,
     },
@@ -191,11 +161,8 @@ export const useBEPStore = create<BEPState>()(
       id: '9',
       type: 'roles_responsibilities',
       title: '9. PAPÉIS E RESPONSABILIDADES',
-      content: { 
-        // Tabela 9
-        roles: [
-          { role: '', responsibility: '' },
-        ] 
+      content: {
+        roles: [{ role: '', responsibility: '' }],
       },
       isExpanded: false,
     },
@@ -212,69 +179,166 @@ export const useBEPStore = create<BEPState>()(
       title: '11. ANEXOS',
       content: { attachments: [] },
       isExpanded: false,
-    }
-  ],
+    },
+  ];
+}
+
+const BLOCK_TITLES: Record<BlockType, string> = {
+  general_project: '1. INFORMAÇÕES GERAIS DO PROJETO',
+  general_team: '2. INFORMAÇÕES GERAIS – EQUIPE DO PROJETO',
+  responsibility_matrix: '3. MATRIZ DE RESPONSABILIDADES',
+  deliverables_matrix: '4. MATRIZ DE ENTREGÁVEIS',
+  bim_uses_goals: '5. USOS BIM (OBJETIVOS ORGANIZACIONAIS)',
+  bim_uses_infra: '6. USOS BIM (INFRAESTRUTURA TECNOLÓGICA)',
+  project_requirements: '7. REQUISITOS DO PROJETO (LOIN / LOD)',
+  schedule: '8. PRINCIPAIS MARCOS DO PROJETO',
+  roles_responsibilities: '9. PAPÉIS E RESPONSABILIDADES',
+  references: '10. REFERÊNCIAS',
+  attachments: '11. ANEXOS',
+};
+
+interface BEPState {
+  blocks: BlockData[];
+  isoContext: string;
+  activeView: 'home' | 'editor' | 'kanban' | 'ifc';
+  currentProjectId: string | null;
+  currentProjectName: string;
+  projects: ProjectMeta[];
+  setActiveView: (view: 'home' | 'editor' | 'kanban' | 'ifc') => void;
+  setIsoContext: (text: string) => void;
+  // Projetos
+  refreshProjects: () => void;
+  createProject: (name: string) => void;
+  openProject: (id: string) => void;
+  deleteProject: (id: string) => void;
+  importProject: (data: { blocks: BlockData[]; isoContext?: string }, name: string) => void;
+  // Blocos
+  addBlock: (type: BlockType) => void;
+  removeBlock: (id: string) => void;
+  updateBlock: (id: string, data: Partial<BlockData>) => void;
+  updateBlockContent: (id: string, content: any) => void;
+  reorderBlocks: (oldIndex: number, newIndex: number) => void;
+  toggleBlock: (id: string) => void;
+  expandAllBlocks: () => void;
+}
+
+export const useBEPStore = create<BEPState>((set) => ({
+  blocks: createDefaultBlocks(),
   isoContext: '',
   activeView: 'home',
+  currentProjectId: null,
+  currentProjectName: '',
+  projects: listProjectsMeta(),
+
   setActiveView: (view) => set({ activeView: view }),
   setIsoContext: (text) => set({ isoContext: text }),
-  loadProject: (data) =>
-    set({ blocks: data.blocks, isoContext: data.isoContext ?? '' }),
-  addBlock: (type) => set((state) => {
-    const titles: Record<BlockType, string> = {
-      general_project: '1. INFORMAÇÕES GERAIS DO PROJETO',
-      general_team: '2. INFORMAÇÕES GERAIS – EQUIPE DO PROJETO',
-      responsibility_matrix: '3. MATRIZ DE RESPONSABILIDADES',
-      deliverables_matrix: '4. MATRIZ DE ENTREGÁVEIS',
-      bim_uses_goals: '5. USOS BIM (OBJETIVOS ORGANIZACIONAIS)',
-      bim_uses_infra: '6. USOS BIM (INFRAESTRUTURA TECNOLÓGICA)',
-      project_requirements: '7. REQUISITOS DO PROJETO (LOIN / LOD)',
-      schedule: '8. PRINCIPAIS MARCOS DO PROJETO',
-      roles_responsibilities: '9. PAPÉIS E RESPONSABILIDADES',
-      references: '10. REFERÊNCIAS',
-      attachments: '11. ANEXOS'
-    };
 
-    return {
+  refreshProjects: () => set({ projects: listProjectsMeta() }),
+
+  createProject: (name) => {
+    const id = uuidv4();
+    const projectName = name?.trim() || 'Novo Projeto';
+    const blocks = createDefaultBlocks();
+    writeProjectData({ id, name: projectName, blocks, isoContext: '', updatedAt: Date.now() });
+    set({
+      currentProjectId: id,
+      currentProjectName: projectName,
+      blocks,
+      isoContext: '',
+      activeView: 'editor',
+      projects: listProjectsMeta(),
+    });
+  },
+
+  openProject: (id) => {
+    const data = readProjectData(id);
+    if (!data) return;
+    set({
+      currentProjectId: data.id,
+      currentProjectName: data.name,
+      blocks: data.blocks,
+      isoContext: data.isoContext ?? '',
+      activeView: 'editor',
+    });
+  },
+
+  deleteProject: (id) =>
+    set((state) => {
+      deleteProjectData(id);
+      const projects = listProjectsMeta();
+      if (state.currentProjectId === id) {
+        return {
+          projects,
+          currentProjectId: null,
+          currentProjectName: '',
+          blocks: createDefaultBlocks(),
+          isoContext: '',
+          activeView: 'home' as const,
+        };
+      }
+      return { projects };
+    }),
+
+  importProject: (data, name) => {
+    const id = uuidv4();
+    const projectName = name?.trim() || 'Projeto importado';
+    const blocks = data.blocks;
+    const isoContext = data.isoContext ?? '';
+    writeProjectData({ id, name: projectName, blocks, isoContext, updatedAt: Date.now() });
+    set({
+      currentProjectId: id,
+      currentProjectName: projectName,
+      blocks,
+      isoContext,
+      activeView: 'editor',
+      projects: listProjectsMeta(),
+    });
+  },
+
+  addBlock: (type) =>
+    set((state) => ({
       blocks: [
         ...state.blocks,
-        {
-          id: uuidv4(),
-          type,
-          title: titles[type],
-          content: {},
-          isExpanded: true,
-        }
-      ]
-    };
-  }),
-  removeBlock: (id) => set((state) => ({
-    blocks: state.blocks.filter((b) => b.id !== id)
-  })),
-  updateBlock: (id, data) => set((state) => ({
-    blocks: state.blocks.map((b) => (b.id === id ? { ...b, ...data } : b))
-  })),
-  updateBlockContent: (id, content) => set((state) => ({
-    blocks: state.blocks.map((b) => (b.id === id ? { ...b, content: { ...b.content, ...content } } : b))
-  })),
-  reorderBlocks: (oldIndex, newIndex) => set((state) => {
-    const newBlocks = [...state.blocks];
-    const [movedBlock] = newBlocks.splice(oldIndex, 1);
-    newBlocks.splice(newIndex, 0, movedBlock);
-    return { blocks: newBlocks };
-  }),
-  toggleBlock: (id) => set((state) => ({
-    blocks: state.blocks.map((b) => (b.id === id ? { ...b, isExpanded: !b.isExpanded } : b))
-  })),
-  expandAllBlocks: () => set((state) => ({
-    blocks: state.blocks.map((b) => ({ ...b, isExpanded: true }))
-  })),
+        { id: uuidv4(), type, title: BLOCK_TITLES[type], content: {}, isExpanded: true },
+      ],
+    })),
+  removeBlock: (id) => set((state) => ({ blocks: state.blocks.filter((b) => b.id !== id) })),
+  updateBlock: (id, data) =>
+    set((state) => ({ blocks: state.blocks.map((b) => (b.id === id ? { ...b, ...data } : b)) })),
+  updateBlockContent: (id, content) =>
+    set((state) => ({
+      blocks: state.blocks.map((b) => (b.id === id ? { ...b, content: { ...b.content, ...content } } : b)),
+    })),
+  reorderBlocks: (oldIndex, newIndex) =>
+    set((state) => {
+      const newBlocks = [...state.blocks];
+      const [moved] = newBlocks.splice(oldIndex, 1);
+      newBlocks.splice(newIndex, 0, moved);
+      return { blocks: newBlocks };
     }),
-    {
-      name: 'bep-ai-store',
-      version: 1,
-      // Persist the document and extracted context; keep transient UI view out.
-      partialize: (state) => ({ blocks: state.blocks, isoContext: state.isoContext }),
-    }
-  )
-);
+  toggleBlock: (id) =>
+    set((state) => ({
+      blocks: state.blocks.map((b) => (b.id === id ? { ...b, isExpanded: !b.isExpanded } : b)),
+    })),
+  expandAllBlocks: () =>
+    set((state) => ({ blocks: state.blocks.map((b) => ({ ...b, isExpanded: true })) })),
+}));
+
+// Auto-save: grava o projeto ativo (debounced) sempre que blocos/contexto mudam.
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+useBEPStore.subscribe((state, prev) => {
+  if (!state.currentProjectId) return;
+  if (state.blocks === prev.blocks && state.isoContext === prev.isoContext) return;
+  clearTimeout(saveTimer);
+  const { currentProjectId, currentProjectName, blocks, isoContext } = state;
+  saveTimer = setTimeout(() => {
+    writeProjectData({
+      id: currentProjectId,
+      name: currentProjectName,
+      blocks,
+      isoContext,
+      updatedAt: Date.now(),
+    });
+    useBEPStore.setState({ projects: listProjectsMeta() });
+  }, 500);
+});

@@ -18,7 +18,7 @@ const IfcAnalysis = lazy(() =>
 );
 
 function App() {
-  const { blocks, reorderBlocks, expandAllBlocks, setIsoContext, isoContext, loadProject, activeView } = useBEPStore();
+  const { blocks, reorderBlocks, expandAllBlocks, setIsoContext, isoContext, importProject, currentProjectName, activeView } = useBEPStore();
   const [isImporting, setIsImporting] = useState(false);
 
   const sensors = useSensors(
@@ -39,7 +39,7 @@ function App() {
   }
 
   const handleSaveProject = () => {
-    const project = { version: 1, blocks, isoContext };
+    const project = { version: 1, name: currentProjectName, blocks, isoContext };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
@@ -55,8 +55,9 @@ function App() {
     try {
       const data = JSON.parse(await file.text());
       if (!Array.isArray(data.blocks)) throw new Error('Arquivo inválido.');
-      loadProject({ blocks: data.blocks, isoContext: data.isoContext });
-      alert('Projeto carregado com sucesso.');
+      const name = data.name || file.name.replace(/\.json$/i, '');
+      importProject({ blocks: data.blocks, isoContext: data.isoContext }, name);
+      alert('Projeto importado com sucesso.');
     } catch (err) {
       console.error('Load project failed', err);
       alert('Falha ao carregar o projeto. Verifique se o arquivo .json é válido.');
@@ -209,9 +210,9 @@ function App() {
               >
                 <header className="mb-8 flex items-center justify-between">
                   <div>
-                    <h1 className="text-3xl font-bold text-slate-900">BEP.ai</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">{currentProjectName || 'BEP.ai'}</h1>
                     <p className="text-slate-500 mt-2">
-                      ISO 19650 & NBR 15965 Compliant Generator
+                      ISO 19650 & NBR 15965 · Plano de Execução BIM
                     </p>
                   </div>
                   <div className="flex gap-2">

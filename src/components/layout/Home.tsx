@@ -1,94 +1,132 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useBEPStore } from '../../store/bepStore';
-import { ArrowRight, BookOpen, Layers, CheckCircle, Zap } from 'lucide-react';
+import { Plus, FolderOpen, Upload, Trash2, FileText, ArrowRight } from 'lucide-react';
 
 export function Home() {
-  const { setActiveView } = useBEPStore();
+  const { projects, createProject, openProject, deleteProject, importProject } = useBEPStore();
+  const [newName, setNewName] = useState('');
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 }
+  const handleCreate = () => {
+    createProject(newName);
+    setNewName('');
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.blocks)) throw new Error('Arquivo inválido.');
+      const name = data.name || file.name.replace(/\.json$/i, '');
+      importProject({ blocks: data.blocks, isoContext: data.isoContext }, name);
+    } catch (err) {
+      console.error('Import failed', err);
+      alert('Falha ao importar. Verifique se o .json é um projeto BEP válido.');
+    } finally {
+      e.target.value = '';
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 100, damping: 20 } }
-  };
+  const fmtDate = (ts: number) => new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-200/40 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
-      
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-5xl w-full z-10"
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-2xl w-full z-10"
       >
-        <div className="text-center mb-16">
-          <motion.div variants={itemVariants} className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20">
-            <span className="text-white font-black text-3xl tracking-tighter">B.ai</span>
-          </motion.div>
-          <motion.h1 variants={itemVariants} className="text-5xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
+        {/* Cabeçalho */}
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-slate-900/20">
+            <span className="text-white font-black text-2xl tracking-tighter">B.ai</span>
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">
             BEP<span className="text-orange-600">.ai</span>
-          </motion.h1>
-          <motion.p variants={itemVariants} className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto font-medium leading-relaxed">
-            Plataforma inteligente para automação de Planos de Execução BIM. 
-            Construa documentos precisos baseados nas normativas ISO 19650 e NBR 15965.
-          </motion.p>
-          
-          <motion.button
-            variants={itemVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setActiveView('editor')}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-slate-900/20"
-          >
-            Iniciar Novo BEP
-            <ArrowRight className="w-5 h-5" />
-          </motion.button>
+          </h1>
+          <p className="text-slate-600 max-w-md mx-auto">
+            Planos de Execução BIM (ISO 19650 / NBR 15965). Crie um novo projeto ou continue um existente.
+          </p>
         </div>
 
-        <motion.div 
-          variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          <motion.div variants={itemVariants} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 text-orange-600">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-3">Preenchimento Acelerado</h3>
-            <p className="text-slate-600 leading-relaxed">
-              Utilize o assistente de Inteligência Artificial para gerar textos estruturados e sugestões técnicas para cada seção do seu plano de execução.
-            </p>
-          </motion.div>
+        {/* Novo projeto */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Novo projeto</h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              placeholder="Nome do projeto (ex.: Terminal Rodoviário)"
+              className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+            />
+            <button
+              onClick={handleCreate}
+              className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Criar
+            </button>
+          </div>
+          <div className="mt-3">
+            <input type="file" accept=".json" onChange={handleImport} className="hidden" id="home-import" />
+            <label
+              htmlFor="home-import"
+              className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-orange-600 cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              Importar projeto (.json)
+            </label>
+          </div>
+        </div>
 
-          <motion.div variants={itemVariants} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-3">Conformidade Normativa</h3>
-            <p className="text-slate-600 leading-relaxed">
-              O assistente garante que as respostas e as estruturas de dados estejam em total alinhamento com a ISO 19650 e referências brasileiras.
-            </p>
-          </motion.div>
+        {/* Projetos existentes */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            Projetos existentes
+          </h2>
 
-          <motion.div variants={itemVariants} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 text-emerald-600">
-              <Layers className="w-6 h-6" />
+          {projects.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <FileText className="w-8 h-8 mx-auto mb-2 opacity-60" />
+              <p className="text-sm">Nenhum projeto ainda. Crie o primeiro acima.</p>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-3">Exportação Profissional</h3>
-            <p className="text-slate-600 leading-relaxed">
-              Após a estruturação via matrizes e kanbans, exporte o documento final diretamente para um PDF limpo, corporativo e formatado.
-            </p>
-          </motion.div>
-        </motion.div>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {projects.map((p) => (
+                <li key={p.id} className="flex items-center gap-3 py-3 group">
+                  <FolderOpen className="w-4 h-4 text-slate-400 shrink-0" />
+                  <button onClick={() => openProject(p.id)} className="flex-1 text-left min-w-0">
+                    <span className="block font-medium text-slate-800 text-sm truncate">{p.name}</span>
+                    <span className="block text-xs text-slate-400">Atualizado em {fmtDate(p.updatedAt)}</span>
+                  </button>
+                  <button
+                    onClick={() => openProject(p.id)}
+                    className="flex items-center gap-1.5 text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-md transition-colors"
+                  >
+                    Abrir
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Excluir o projeto "${p.name}"? Esta ação não pode ser desfeita.`)) deleteProject(p.id);
+                    }}
+                    title="Excluir projeto"
+                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </motion.div>
     </div>
   );
