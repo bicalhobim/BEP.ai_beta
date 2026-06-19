@@ -10,33 +10,9 @@ Protótipo web educacional que faz três coisas:
 
 ---
 
-## 🏁 Como rodar
-
-Pré-requisitos: **Node.js 20+** e **Python 3**.
-
-```bash
-git clone https://github.com/ZapObras-Tech/bep.ai_beta.git
-cd bep.ai_beta
-
-npm run setup   # instala deps + CLI notebooklm + Chromium
-npm run dev     # abre http://localhost:3000
-```
-
-Depois, no app: clique no botão **NotebookLM** (topo) para fazer login Google e escolher o notebook.
-
-| Comando | O que faz |
-|---|---|
-| `npm run dev` | servidor de desenvolvimento (porta 3000) |
-| `npm run build` | build de produção em `dist/` |
-| `npm run lint` | checagem de tipos (`tsc --noEmit`) |
-| `npm run setup` | instala tudo (deps + NotebookLM + Chromium) |
-| `npm run notebooklm:login` | login Google no NotebookLM |
-
----
-
 ## 📖 Guia do aluno
 
-Passo a passo de uso do app (como preencher o BEP, importar EIR, carregar IFC, gerar a análise): veja **[GUIA_DE_USO.md](GUIA_DE_USO.md)**.
+Instalação e uso completos (como rodar, preencher o BEP, importar EIR, carregar IFC, gerar a análise): veja **[GUIA_DE_USO.md](GUIA_DE_USO.md)**.
 
 ---
 
