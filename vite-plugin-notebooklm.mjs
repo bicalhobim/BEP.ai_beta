@@ -139,15 +139,16 @@ export function notebooklmBridge() {
           }
 
           if (route === '/status' && req.method === 'GET') {
+            // `auth check` só inspeciona cookies em disco: retorna status='ok'
+            // mesmo com o TOKEN EXPIRADO (token_fetch=null). Isso dava um falso
+            // "autenticado" e escondia o botão de login. O sinal confiável é o
+            // próprio `list` funcionar — se a sessão expirou, ele falha (exit !=0
+            // com "Authentication expired"), então tratamos como não-autenticado.
             let cliFound = true;
             let authenticated = false;
             try {
-              const out = await runCli(['auth', 'check', '--json'], { timeout: 15_000 });
-              const data = JSON.parse(out);
-              // `token_fetch` pode vir `null` mesmo logado (CLI não força refresh).
-              // O sinal confiável é status==='ok' (cookies/sid presentes).
-              authenticated =
-                data?.status === 'ok' || Boolean(data?.checks?.sid_cookie || data?.checks?.cookies_present);
+              await runCli(['list', '--json'], { timeout: 30_000 });
+              authenticated = true;
             } catch (e) {
               cliFound = e.code !== 'ENOENT';
               authenticated = false;
