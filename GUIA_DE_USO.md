@@ -53,7 +53,7 @@ Primeiro você precisa ter os arquivos do projeto no seu computador.
 2. Abra a pasta do projeto. A pasta certa é a que tem o arquivo **`package.json`**:
 
    ```
-   C:\Users\Luiz Sales\Downloads\01_Projetos\IFC.AI Beta\BEP.ai_beta
+   C:\Users\aluno\Downloads\bep.ai_beta-main
    ```
 
 3. Para confirmar que está na pasta certa, **peça ao OpenCode**:
