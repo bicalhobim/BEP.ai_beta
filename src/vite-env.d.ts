@@ -1,16 +1,8 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_DEEPSEEK_API_KEY?: string;
-  readonly VITE_DEEPSEEK_MODEL?: string;
-  readonly VITE_DEEPSEEK_MODEL_PRO?: string;
-  readonly VITE_GROQ_API_KEY?: string;
-  readonly VITE_GROQ_MODEL?: string;
-  readonly VITE_GROQ_MODEL_PRO?: string;
-  readonly VITE_GEMINI_API_KEY?: string;
-  readonly VITE_GEMINI_MODEL_FAST?: string;
-  readonly VITE_GEMINI_MODEL_PRO?: string;
-}
+// O app roda 100% no NotebookLM (autenticação via ponte/CLI). Sem variáveis de
+// ambiente de IA. Mantido para o tipo padrão do Vite e futuras configs.
+interface ImportMetaEnv {}
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;

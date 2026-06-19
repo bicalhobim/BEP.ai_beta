@@ -24,34 +24,24 @@ export function BlockWrapper({ block, children }: BlockWrapperProps) {
     isDragging
   } = useSortable({ id: block.id });
 
-  const { toggleBlock, removeBlock, updateBlockContent, isoContext, aiProviderId, notebookId } = useBEPStore();
+  const { toggleBlock, removeBlock, updateBlockContent, notebookId } = useBEPStore();
   const [generating, setGenerating] = useState(false);
 
-  const usingNotebookLM = aiProviderId === 'notebooklm';
-
   const handleGenerate = async () => {
-    if (usingNotebookLM) {
-      if (!notebookId) {
-        alert('Selecione um projeto do NotebookLM (botão "NotebookLM" no topo) antes de gerar.');
-        return;
-      }
-    } else if (!isoContext) {
-      alert('Importe um documento (PDF) primeiro para gerar esta seção com IA.');
+    if (!notebookId) {
+      alert('Selecione um projeto do NotebookLM (botão "NotebookLM" no topo) antes de gerar.');
       return;
     }
     setGenerating(true);
     try {
-      // No modo NotebookLM a fonte vive no notebook conectado; não embutimos
-      // texto local. Nos demais, usamos o texto extraído do PDF (isoContext).
-      const ctx = usingNotebookLM
-        ? isoContext || 'Use as fontes (edital/EIR) deste notebook como referência.'
-        : isoContext;
-      const content = await generateSection(block.type, ctx);
+      // A fonte (edital/EIR) vive no notebook conectado; o NotebookLM fundamenta a
+      // resposta nas próprias fontes — não enviamos texto local.
+      const content = await generateSection(block.type);
       updateBlockContent(block.id, content);
       if (!block.isExpanded) toggleBlock(block.id);
     } catch (e) {
       console.error('Falha ao gerar seção:', e);
-      alert('Falha ao gerar a seção. Verifique a chave da DeepSeek e tente novamente.');
+      alert('Falha ao gerar a seção. Verifique a conexão com o NotebookLM e tente novamente.');
     } finally {
       setGenerating(false);
     }

@@ -12,7 +12,6 @@ export interface ProjectMeta {
 
 export interface ProjectData extends ProjectMeta {
   blocks: BlockData[];
-  isoContext: string;
 }
 
 const INDEX_KEY = 'bep-ai:projects';

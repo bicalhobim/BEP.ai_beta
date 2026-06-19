@@ -7,7 +7,6 @@ import {
   deleteProjectData,
   type ProjectMeta,
 } from '../lib/projects';
-import { readSessionPdf, writeSessionPdf, clearSessionPdf } from '../lib/sessionPdf';
 import { getActiveProviderId, setActiveProvider } from '../lib/ai';
 import { getNotebookId, setNotebookId } from '../lib/ai/providers/notebooklm';
 
@@ -202,14 +201,11 @@ const BLOCK_TITLES: Record<BlockType, string> = {
 
 interface BEPState {
   blocks: BlockData[];
-  isoContext: string;
-  importedFileName: string;
   activeView: 'home' | 'editor' | 'kanban' | 'ifc';
   currentProjectId: string | null;
   currentProjectName: string;
   projects: ProjectMeta[];
   setActiveView: (view: 'home' | 'editor' | 'kanban' | 'ifc') => void;
-  setIsoContext: (text: string, fileName?: string) => void;
   // Provedor de IA + projeto NotebookLM
   aiProviderId: string;
   notebookId: string;
@@ -220,7 +216,7 @@ interface BEPState {
   createProject: (name: string) => void;
   openProject: (id: string) => void;
   deleteProject: (id: string) => void;
-  importProject: (data: { blocks: BlockData[]; isoContext?: string }, name: string) => void;
+  importProject: (data: { blocks: BlockData[] }, name: string) => void;
   // Blocos
   addBlock: (type: BlockType) => void;
   removeBlock: (id: string) => void;
@@ -231,22 +227,14 @@ interface BEPState {
   expandAllBlocks: () => void;
 }
 
-// Restaura o documento importado da sessão (sobrevive a reloads; some ao fechar o
-// navegador). Mantém o auto-preencher funcionando sem reimportar o PDF.
-const sessionPdf = readSessionPdf();
-
 export const useBEPStore = create<BEPState>((set) => ({
   blocks: createDefaultBlocks(),
-  isoContext: sessionPdf?.text ?? '',
-  importedFileName: sessionPdf?.fileName ?? '',
   activeView: 'home',
   currentProjectId: null,
   currentProjectName: '',
   projects: listProjectsMeta(),
 
   setActiveView: (view) => set({ activeView: view }),
-  setIsoContext: (text, fileName) =>
-    set(fileName !== undefined ? { isoContext: text, importedFileName: fileName } : { isoContext: text }),
 
   aiProviderId: getActiveProviderId(),
   notebookId: getNotebookId(),
@@ -265,13 +253,11 @@ export const useBEPStore = create<BEPState>((set) => ({
     const id = uuidv4();
     const projectName = name?.trim() || 'Novo Projeto';
     const blocks = createDefaultBlocks();
-    writeProjectData({ id, name: projectName, blocks, isoContext: '', updatedAt: Date.now() });
+    writeProjectData({ id, name: projectName, blocks, updatedAt: Date.now() });
     set({
       currentProjectId: id,
       currentProjectName: projectName,
       blocks,
-      isoContext: '',
-      importedFileName: '',
       activeView: 'editor',
       projects: listProjectsMeta(),
     });
@@ -284,8 +270,6 @@ export const useBEPStore = create<BEPState>((set) => ({
       currentProjectId: data.id,
       currentProjectName: data.name,
       blocks: data.blocks,
-      isoContext: data.isoContext ?? '',
-      importedFileName: '',
       activeView: 'editor',
     });
   },
@@ -300,8 +284,6 @@ export const useBEPStore = create<BEPState>((set) => ({
           currentProjectId: null,
           currentProjectName: '',
           blocks: createDefaultBlocks(),
-          isoContext: '',
-          importedFileName: '',
           activeView: 'home' as const,
         };
       }
@@ -312,14 +294,11 @@ export const useBEPStore = create<BEPState>((set) => ({
     const id = uuidv4();
     const projectName = name?.trim() || 'Projeto importado';
     const blocks = data.blocks;
-    const isoContext = data.isoContext ?? '';
-    writeProjectData({ id, name: projectName, blocks, isoContext, updatedAt: Date.now() });
+    writeProjectData({ id, name: projectName, blocks, updatedAt: Date.now() });
     set({
       currentProjectId: id,
       currentProjectName: projectName,
       blocks,
-      isoContext,
-      importedFileName: '',
       activeView: 'editor',
       projects: listProjectsMeta(),
     });
@@ -354,33 +333,20 @@ export const useBEPStore = create<BEPState>((set) => ({
     set((state) => ({ blocks: state.blocks.map((b) => ({ ...b, isExpanded: true })) })),
 }));
 
-// Auto-save: grava o projeto ativo (debounced) sempre que blocos/contexto mudam.
+// Auto-save: grava o projeto ativo (debounced) sempre que os blocos mudam.
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 useBEPStore.subscribe((state, prev) => {
   if (!state.currentProjectId) return;
-  if (state.blocks === prev.blocks && state.isoContext === prev.isoContext) return;
+  if (state.blocks === prev.blocks) return;
   clearTimeout(saveTimer);
-  const { currentProjectId, currentProjectName, blocks, isoContext } = state;
+  const { currentProjectId, currentProjectName, blocks } = state;
   saveTimer = setTimeout(() => {
     writeProjectData({
       id: currentProjectId,
       name: currentProjectName,
       blocks,
-      isoContext,
       updatedAt: Date.now(),
     });
     useBEPStore.setState({ projects: listProjectsMeta() });
   }, 500);
-});
-
-// Espelha o documento importado na sessão do navegador (sessionStorage). Sobrevive a
-// reloads; some ao fechar a aba/navegador. Mantém sincronia com o isoContext atual,
-// cobrindo import, abrir/criar/deletar projeto.
-useBEPStore.subscribe((state, prev) => {
-  if (state.isoContext === prev.isoContext && state.importedFileName === prev.importedFileName) return;
-  if (state.isoContext) {
-    writeSessionPdf(state.isoContext, state.importedFileName);
-  } else {
-    clearSessionPdf();
-  }
 });

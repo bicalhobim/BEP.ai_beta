@@ -8,10 +8,10 @@ import {
 } from '../../lib/ai/providers/notebooklm';
 import { BookOpen, Loader2, Check, RefreshCw, ChevronDown, LogIn } from 'lucide-react';
 
-// Painel de conexão com o NotebookLM. Fluxo direto pelo app:
-//   trocar para NotebookLM → (se preciso) login no Chromium → escolher notebook.
+// Painel de conexão com o NotebookLM (único motor de IA do app). Fluxo direto:
+//   abrir → (se preciso) login no Chromium → escolher notebook.
 export function NotebookLMConnect() {
-  const { aiProviderId, notebookId, setAiProvider, setNotebookId } = useBEPStore();
+  const { notebookId, setNotebookId } = useBEPStore();
   const [open, setOpen] = useState(false);
   const [notebooks, setNotebooks] = useState<NotebookInfo[]>([]);
   const [loading, setLoading] = useState(false); // carregando notebooks
@@ -20,7 +20,6 @@ export function NotebookLMConnect() {
   const [cliFound, setCliFound] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isNB = aiProviderId === 'notebooklm';
   const selected = notebooks.find((n) => n.id === notebookId);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -75,18 +74,13 @@ export function NotebookLMConnect() {
     }
   };
 
-  const chooseProvider = (id: string) => {
-    setAiProvider(id);
-    if (id === 'notebooklm' && authed === null) refreshStatus();
-  };
-
   const togglePanel = () => {
     const next = !open;
     setOpen(next);
-    if (next && isNB && authed === null) refreshStatus();
+    if (next && authed === null) refreshStatus();
   };
 
-  const label = isNB ? (selected ? `NotebookLM: ${selected.title}` : 'NotebookLM') : 'IA: DeepSeek';
+  const label = selected ? `NotebookLM: ${selected.title}` : 'NotebookLM';
 
   return (
     <div className="relative" ref={rootRef}>
@@ -95,7 +89,7 @@ export function NotebookLMConnect() {
         aria-haspopup="menu"
         aria-expanded={open}
         className="flex items-center gap-2 h-11 px-3 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1"
-        title="Escolher o motor de IA e o projeto NotebookLM"
+        title="Conectar ao NotebookLM e escolher o projeto"
       >
         <BookOpen className="w-4 h-4 text-orange-600" />
         <span className="max-w-[180px] truncate">{label}</span>
@@ -104,31 +98,8 @@ export function NotebookLMConnect() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-4 space-y-4">
-          {/* Toggle de provedor */}
+          <p className="text-xs font-semibold text-slate-500 uppercase">Conexão NotebookLM</p>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Motor de IA</p>
-            <div className="flex gap-2">
-              {[
-                { id: 'deepseek', name: 'DeepSeek' },
-                { id: 'notebooklm', name: 'NotebookLM' },
-              ].map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => chooseProvider(p.id)}
-                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium border transition-colors ${
-                    aiProviderId === p.id
-                      ? 'bg-orange-50 text-orange-700 border-orange-200'
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {isNB && (
-            <div>
               {error && (
                 <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-md p-2 mb-2">{error}</p>
               )}
@@ -204,8 +175,7 @@ export function NotebookLMConnect() {
                   </p>
                 </div>
               )}
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>

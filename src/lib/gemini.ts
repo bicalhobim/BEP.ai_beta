@@ -15,12 +15,9 @@ Diretrizes:
 - Formate a saída em Markdown limpo ou JSON quando solicitado.
 `;
 
-export async function suggestContent(context: string, prompt: string, json: boolean = false) {
+export async function suggestContent(prompt: string, json: boolean = false) {
   const fullPrompt = `
-  Contexto do Projeto (Edital/EIR):
-  """
-  ${context.substring(0, 60000)}
-  """
+  Baseie-se nas fontes (edital/EIR/normas) deste notebook do NotebookLM.
 
   Tarefa:
   ${prompt}
@@ -31,129 +28,6 @@ export async function suggestContent(context: string, prompt: string, json: bool
   `;
 
   return aiProvider.generate({ prompt: fullPrompt, system: SYSTEM_INSTRUCTION, json, tier: 'pro' });
-}
-
-export async function extractEIR(text: string) {
-  const prompt = `
-  Analise o seguinte texto de um Edital/EIR e extraia os dados principais para a Tabela 1 do BEP.
-
-  Texto do Edital:
-  "${text}"
-
-  Saída esperada (JSON):
-  {
-    "contract_number": "Número do Edital ou Contrato",
-    "client_name": "Nome do Órgão Contratante ou Cliente",
-    "project_name": "Nome do Objeto/Projeto",
-    "modality": "Modalidade de Licitação (se houver)",
-    "summary": "Resumo técnico das exigências BIM (máx 3 linhas)"
-  }
-  `;
-
-  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'fast' });
-}
-
-export async function analyzeFullBEP(text: string) {
-  const prompt = `
-  Você é um especialista em BIM. Analise o texto completo de um Edital/EIR (Exchange Information Requirements) e extraia TODAS as informações possíveis para preencher um Plano de Execução BIM (BEP).
-
-  Texto do Edital:
-  "${text.substring(0, 90000)}"
-
-  Retorne um JSON único com a seguinte estrutura exata (se não encontrar algo, deixe como string vazia ou array vazio):
-
-  {
-    "general_project": {
-      "project_name": "",
-      "address": "",
-      "neighborhood": "",
-      "municipality": "",
-      "contract_number": "",
-      "client_name": "",
-      "modality": "",
-      "intended_use": "",
-      "target_audience": "",
-      "project_deadline": "",
-      "construction_deadline": "",
-      "standard": "",
-      "sustainability_indicators": "",
-      "lot_area": "",
-      "construction_area": "",
-      "floors_count": "",
-      "population_forecast": "",
-      "oir_description": "",
-      "eir_description": "",
-      "bidder_company": "",
-      "bidder_representatives": ["", ""],
-      "proposal_date": ""
-    },
-    "general_team": {
-      "contractor_team": [
-        { "role": "CONTRATANTE", "name": "", "education": "", "email": "", "phone": "" },
-        { "role": "GESTOR (CONTRATO)", "name": "", "education": "", "email": "", "phone": "" }
-      ],
-      "bidder_team": []
-    },
-    "responsibility_matrix": {
-      "technical_team": [
-        { "role": "COORDENADOR BIM", "name": "", "registry": "", "email": "", "phone": "" }
-      ]
-    },
-    "deliverables_matrix": {
-      "deliverables": [
-        { "phase": "", "discipline": "", "deliverable": "", "formats": "", "responsible": "" }
-      ]
-    },
-    "bim_uses_goals": {
-      "goals": [
-        { "priority": "1", "objective": "", "uses": "" }
-      ]
-    },
-    "bim_uses_infra": {
-      "software_tools": [
-        { "use": "", "platform": "", "version": "", "extension": "" }
-      ],
-      "hardware_requirements": [
-        { "purpose": "", "cpu": "", "ram": "", "gpu": "", "os": "", "hd": "" }
-      ]
-    },
-    "project_requirements": {
-      "requirements": [
-        { "phase": "", "lod": "", "loin": "" }
-      ]
-    },
-    "schedule": {
-      "milestones": [
-        { "item": "", "description": "", "duration": "", "start": "", "end": "" }
-      ]
-    },
-    "roles_responsibilities": {
-      "roles": [
-        { "role": "", "responsibility": "" }
-      ]
-    }
-  }
-  `;
-
-  // Full-context analysis uses the 'pro' tier.
-  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'pro' });
-}
-
-export async function suggestBIMUses(projectType: string, currentUses: string[]) {
-  const prompt = `
-  O projeto é do tipo: "${projectType}".
-  Usos BIM atuais: ${JSON.stringify(currentUses)}.
-
-  Sugira 3 a 5 Usos BIM adicionais preditivos e justifique brevemente com base no tipo do projeto.
-  Exemplo: Se for Industrial, sugira Clash Detection. Se for Residencial, sugira Extração de Quantitativos.
-
-  Retorne apenas a lista de sugestões em formato JSON:
-  [
-    { "use": "Nome do Uso", "justification": "Justificativa técnica" }
-  ]
-  `;
-
-  return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, json: true, tier: 'fast' });
 }
 
 export async function optimizeLOD(element: string, phase: string, requestedLOD: string) {
@@ -210,13 +84,11 @@ export async function refineText(text: string) {
   return aiProvider.generate({ prompt, system: SYSTEM_INSTRUCTION, tier: 'fast' });
 }
 
-export async function askISO(question: string, context: string) {
+export async function askISO(question: string) {
   const prompt = `
   Você é um especialista em normas BIM (ISO 19650 e NBR 15965).
-  Use o seguinte contexto extraído de um arquivo PDF (Norma ou Documento de Referência) para responder à pergunta do usuário.
-
-  Contexto:
-  "${context.substring(0, 100000)}"
+  Use as fontes (normas/documentos de referência) deste notebook do NotebookLM para
+  responder à pergunta do usuário.
 
   Pergunta:
   "${question}"

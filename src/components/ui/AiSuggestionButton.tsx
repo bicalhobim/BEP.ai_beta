@@ -13,25 +13,20 @@ interface Props {
 }
 
 export function AiSuggestionButton({ prompt, onSuggest, className, label = "Sugerir", json = false }: Props) {
-  const { isoContext, aiProviderId, notebookId } = useBEPStore();
+  const { notebookId } = useBEPStore();
   const [loading, setLoading] = useState(false);
 
-  const usingNotebookLM = aiProviderId === 'notebooklm';
-  const ready = usingNotebookLM ? Boolean(notebookId) : Boolean(isoContext);
+  const ready = Boolean(notebookId);
 
   const handleSuggest = async () => {
     if (!ready) {
-      alert(
-        usingNotebookLM
-          ? 'Selecione um projeto do NotebookLM no topo antes de usar a IA.'
-          : 'Por favor, importe um PDF (EIR) primeiro para usar a IA.'
-      );
+      alert('Selecione um projeto do NotebookLM no topo antes de usar a IA.');
       return;
     }
 
     setLoading(true);
     try {
-      const suggestion = await suggestContent(isoContext, prompt, json);
+      const suggestion = await suggestContent(prompt, json);
       if (!json) {
         onSuggest(suggestion);
         return;

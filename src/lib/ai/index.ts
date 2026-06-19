@@ -1,26 +1,22 @@
 import type { AIProvider } from './types';
 import { ACTIVE_PROVIDER } from './config';
-import { deepseekProvider } from './providers/deepseek';
-import { geminiProvider } from './providers/gemini';
-import { groqProvider } from './providers/groq';
 import { notebooklmProvider } from './providers/notebooklm';
 
 export type { AIProvider, GenerateRequest, ModelTier } from './types';
 
-// Registry of available providers. To add Claude (or any other), implement
-// ./providers/claude.ts and register it here.
+// Único provider: NotebookLM. (Para adicionar outro, implemente
+// ./providers/<nome>.ts e registre aqui.)
 const PROVIDERS: Record<string, AIProvider> = {
-  deepseek: deepseekProvider,
-  groq: groqProvider,
-  gemini: geminiProvider,
   notebooklm: notebooklmProvider,
 };
 
-// Provider ativo selecionável em RUNTIME (toggle na UI), persistido em
-// localStorage. ACTIVE_PROVIDER (config) é só o padrão inicial.
+// Provider ativo, persistido em localStorage. Guard: se o valor salvo apontar
+// para um provider que não existe mais (ex.: 'deepseek' de versões antigas),
+// cai no ACTIVE_PROVIDER.
 const PROVIDER_KEY = 'bep-ai:ai-provider';
 let activeId: string =
   (typeof localStorage !== 'undefined' && localStorage.getItem(PROVIDER_KEY)) || ACTIVE_PROVIDER;
+if (!PROVIDERS[activeId]) activeId = ACTIVE_PROVIDER;
 
 export function getActiveProviderId(): string {
   return activeId;

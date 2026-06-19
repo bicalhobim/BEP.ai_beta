@@ -119,33 +119,24 @@ export function sectionLabel(type: BlockType): string | undefined {
   return SECTION_SPECS[type]?.label;
 }
 
-/** Gera o conteúdo de UMA seção do BEP a partir do contexto (documentos). */
-// Máximo de caracteres do documento enviados por seção. DeepSeek v4 tem contexto
-// amplo; 60k cortava editais grandes (100+ págs) e deixava campos vazios.
-const CONTEXT_CHAR_LIMIT = 120000;
-
-export async function generateSection(type: BlockType, context: string): Promise<any> {
+/**
+ * Gera o conteúdo de UMA seção do BEP consultando o notebook conectado no
+ * NotebookLM. A fonte (edital/EIR/normas) vive dentro do notebook — não há
+ * documento local; o NotebookLM fundamenta a resposta nas próprias fontes.
+ */
+export async function generateSection(type: BlockType): Promise<any> {
   const spec = SECTION_SPECS[type];
   if (!spec) throw new Error(`Seção não suporta geração por IA: ${type}`);
 
-  if (context.length > CONTEXT_CHAR_LIMIT) {
-    console.warn(
-      `[generateSection] Documento truncado de ${context.length} para ${CONTEXT_CHAR_LIMIT} caracteres na seção "${type}". Dados após o corte ficam invisíveis para a IA.`
-    );
-  }
-
   const prompt = `
-Documentos de referência:
-"""
-${context.substring(0, CONTEXT_CHAR_LIMIT)}
-"""
+Use as fontes (edital/EIR/normas) deste notebook do NotebookLM como referência.
 
 Tarefa: ${spec.instruction}
 
 Retorne APENAS um JSON válido (sem blocos de código), exatamente nesta estrutura:
 ${spec.shape}
 
-Regras: preencha com base SOMENTE nos documentos acima. Se um campo não constar, use ""
+Regras: preencha com base SOMENTE nas fontes do notebook. Se um campo não constar, use ""
 (string vazia) ou [] (array vazio). Não invente nomes, números, normas ou datas.
 `;
 
