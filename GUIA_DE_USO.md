@@ -31,11 +31,48 @@
 
 ---
 
-## ✅ PASSO 0 — Abrir o projeto no OpenCode
+## ✅ PASSO 0 — Baixar o projeto (clone ou ZIP)
+
+Primeiro você precisa ter os arquivos do projeto no seu computador. Escolha **uma** das
+duas formas abaixo.
 
 > 🔗 **Ainda não tem o OpenCode?** Baixe e instale (Windows 64-bit):
 > **https://opencode.ai/br/download/stable/windows-x64-nsis**
 > Execute o instalador e clique **Next / Install** até o fim.
+
+### Forma A (recomendada) — clonar com o OpenCode
+
+1. Abra o **OpenCode** em uma pasta onde queira guardar o projeto (ex.: `Downloads`).
+2. **Peça ao OpenCode:**
+
+   > **Clone o repositório https://github.com/ZapObras-Tech/bep.ai_beta.git nesta
+   > pasta e depois entre na pasta criada.**
+
+   Por dentro ele roda:
+
+   ```bash
+   git clone https://github.com/ZapObras-Tech/bep.ai_beta.git
+   cd bep.ai_beta
+   ```
+
+   ✔️ **Resultado esperado:** uma pasta **`bep.ai_beta`** com `package.json`,
+   `README.md`, a pasta `src/`, etc.
+
+   > 🔁 **Erro `'git' não é reconhecido`?** Falta o Git. **Peça ao OpenCode:**
+   > **"Instale o Git no Windows com `winget install Git.Git` e reinicie o terminal."**
+   > Depois repita o clone. (Ou use a **Forma B** abaixo, que não precisa do Git.)
+
+### Forma B (alternativa) — baixar o ZIP
+
+1. Abra no navegador: **https://github.com/ZapObras-Tech/bep.ai_beta**
+2. Clique no botão verde **`< > Code`** → **"Download ZIP"**.
+3. **Extraia** o ZIP (botão direito → *Extrair tudo*) em uma pasta fácil, ex.: `Downloads`.
+4. A pasta extraída pode se chamar `bep.ai_beta-main` — é normal. Dentro dela está o
+   `package.json`.
+
+---
+
+## ✅ PASSO 0.1 — Abrir o projeto no OpenCode
 
 1. Abra o **OpenCode**.
 2. Abra a pasta do projeto. A pasta certa é a que tem o arquivo **`package.json`**:
