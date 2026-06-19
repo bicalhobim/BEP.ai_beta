@@ -10,18 +10,6 @@ Protótipo web educacional que faz três coisas:
 
 ---
 
-## ⬇️ Downloads (Windows 64-bit)
-
-| Programa | Para quê | Link |
-|---|---|---|
-| **OpenCode** | assistente que roda os comandos por você | https://opencode.ai/br/download/stable/windows-x64-nsis |
-| **Node.js 24** | roda o app | https://nodejs.org/dist/v24.17.0/node-v24.17.0-x64.msi |
-| **Python 3.12** | parte do NotebookLM | https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe |
-
-> ⚠️ No instalador do **Python**, marque ☑️ **"Add python.exe to PATH"** na primeira tela.
-
----
-
 ## 📖 Guia do aluno
 
 Instalação e uso completos (como rodar, preencher o BEP, importar EIR, carregar IFC, gerar a análise): veja **[GUIA_DE_USO.md](GUIA_DE_USO.md)**.
@@ -65,3 +53,19 @@ BEP.ai_beta/
 - **IA:** camada própria em `src/lib/ai/` — provedor NotebookLM via ponte local
 - **IFC / 3D:** ThatOpen Engine + web-ifc (WASM) + three.js
 - **PDF:** pdf.js (leitura) · jsPDF / html-to-image (exportação)
+
+---
+
+## ⬇️ Links de apoio (instaladores)
+
+> A instalação normal é via **winget** (ver guia do aluno), e em geral OpenCode, Node
+> e Python já estão prontos na máquina da aula. Estes links diretos (Windows 64-bit)
+> são só **plano B**, caso o winget não esteja disponível.
+
+| Programa | Para quê | Link |
+|---|---|---|
+| **OpenCode** | assistente que roda os comandos por você | https://opencode.ai/br/download/stable/windows-x64-nsis |
+| **Node.js 24** | roda o app | https://nodejs.org/dist/v24.17.0/node-v24.17.0-x64.msi |
+| **Python 3.12** | parte do NotebookLM | https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe |
+
+> ⚠️ No instalador do **Python**, marque ☑️ **"Add python.exe to PATH"** na primeira tela.
