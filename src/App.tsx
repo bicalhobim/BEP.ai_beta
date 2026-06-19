@@ -27,6 +27,21 @@ function App() {
     window.setTimeout(() => setToast(null), 3500);
   };
 
+  // Menu lateral retrátil; preferência mantida no navegador.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(
+    () => localStorage.getItem('bep-ai:sidebar-collapsed') === '1',
+  );
+  const toggleSidebar = () =>
+    setSidebarCollapsed((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem('bep-ai:sidebar-collapsed', next ? '1' : '0');
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -191,7 +206,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      <Sidebar />
+      <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
       
       <main className="flex-1 overflow-hidden" id="main-scroll">
         {activeView === 'ifc' ? (

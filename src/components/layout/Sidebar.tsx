@@ -1,10 +1,15 @@
 import React from 'react';
 import { useBEPStore } from '../../store/bepStore';
-import { Plus, FileText, Layers, Ruler, Server, Calendar, Users, ListChecks, Paperclip, BookOpen, ArrowRight, LayoutDashboard, Settings, Home as HomeIcon, Box } from 'lucide-react';
+import { FileText, Layers, Ruler, Server, Calendar, Users, ListChecks, Paperclip, BookOpen, ArrowRight, LayoutDashboard, Settings, Home as HomeIcon, Box, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 
-export function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { blocks, addBlock, activeView, setActiveView } = useBEPStore();
 
   const modules = [
@@ -44,70 +49,109 @@ export function Sidebar() {
     }
   };
 
+  // Classe base de um item de navegação. Quando recolhido, centra o ícone e
+  // esconde o rótulo (mantido como aria-label/title para teclado e tooltip).
+  const navItem = clsx(
+    'w-full flex items-center min-h-[44px] rounded-lg transition-colors group text-left',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500',
+    collapsed ? 'justify-center px-0' : 'gap-3 px-3',
+  );
+
   return (
-    <aside className="w-72 bg-white border-r border-slate-200 p-6 flex flex-col h-full shadow-sm z-10 overflow-y-auto shrink-0">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold">BA</span>
+    <aside
+      className={clsx(
+        'bg-white border-r border-slate-200 flex flex-col h-full shadow-sm z-10 overflow-y-auto shrink-0',
+        'transition-[width] duration-200 ease-out',
+        collapsed ? 'w-20 p-3' : 'w-72 p-6',
+      )}
+    >
+      {/* Cabeçalho: logo + botão de recolher */}
+      <div className={clsx('flex items-center mb-8', collapsed ? 'flex-col gap-3' : 'justify-between')}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shrink-0">
+            <span className="text-white font-bold">BA</span>
+          </div>
+          {!collapsed && <span className="font-bold text-lg text-slate-800">BEP.ai</span>}
         </div>
-        <span className="font-bold text-lg text-slate-800">BEP.ai</span>
+        <button
+          onClick={onToggle}
+          aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+          aria-expanded={!collapsed}
+          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+          className="inline-flex items-center justify-center w-9 h-9 rounded-md text-slate-400 hover:text-orange-700 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 shrink-0"
+        >
+          {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+        </button>
       </div>
 
       <nav aria-label="Modo de visualização" className="space-y-1 mb-8">
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
-          Modo de Visualização
-        </h3>
+        {!collapsed && (
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
+            Modo de Visualização
+          </h3>
+        )}
         {views.map((view) => {
           const active = activeView === view.id;
           return (
             <motion.button
               key={view.id}
-              whileHover={{ scale: 1.02, x: 4 }}
+              whileHover={{ scale: 1.02, x: collapsed ? 0 : 4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setActiveView(view.id)}
               aria-current={active ? 'page' : undefined}
+              aria-label={view.label}
+              title={collapsed ? view.label : undefined}
               className={clsx(
-                "w-full flex items-center gap-3 px-3 min-h-[44px] text-sm font-medium rounded-lg transition-colors group text-left",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
-                active ? "text-orange-700 bg-orange-100" : "text-slate-600 hover:text-orange-700 hover:bg-orange-50"
+                navItem,
+                'text-sm font-medium',
+                active ? 'text-orange-700 bg-orange-100' : 'text-slate-600 hover:text-orange-700 hover:bg-orange-50',
               )}
             >
               <view.icon className="w-4 h-4 shrink-0" />
-              <span>{view.label}</span>
+              {!collapsed && <span>{view.label}</span>}
             </motion.button>
           );
         })}
       </nav>
 
       <nav aria-label="Seções do BEP" className="space-y-1">
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
-          Navegação
-        </h3>
+        {!collapsed && (
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
+            Navegação
+          </h3>
+        )}
 
         {modules.map((module) => (
           <motion.button
             key={module.type}
-            whileHover={{ scale: 1.02, x: 4 }}
+            whileHover={{ scale: 1.02, x: collapsed ? 0 : 4 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleNavigation(module.type)}
-            className="w-full flex items-center gap-3 px-3 min-h-[44px] text-sm font-medium text-slate-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+            aria-label={module.label}
+            title={collapsed ? module.label : undefined}
+            className={clsx(navItem, 'text-sm font-medium text-slate-600 hover:text-orange-700 hover:bg-orange-50')}
           >
             <module.icon className="w-4 h-4 text-slate-400 group-hover:text-orange-600 shrink-0" />
-            <span className="truncate">{module.label}</span>
-            <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300 group-hover:text-orange-600 shrink-0" />
+            {!collapsed && (
+              <>
+                <span className="truncate">{module.label}</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300 group-hover:text-orange-600 shrink-0" />
+              </>
+            )}
           </motion.button>
         ))}
       </nav>
 
-      <div className="mt-auto pt-6 border-t border-slate-100">
-        <div className="bg-orange-50 rounded-xl p-4">
-          <h4 className="text-orange-900 font-semibold text-sm mb-1">Precisa de ajuda?</h4>
-          <p className="text-orange-700 text-xs mb-3">
-            O assistente IA está ativo para validar seus inputs normativos.
-          </p>
+      {!collapsed && (
+        <div className="mt-auto pt-6 border-t border-slate-100">
+          <div className="bg-orange-50 rounded-xl p-4">
+            <h4 className="text-orange-900 font-semibold text-sm mb-1">Precisa de ajuda?</h4>
+            <p className="text-orange-700 text-xs mb-3">
+              O assistente IA está ativo para validar seus inputs normativos.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 }
-
