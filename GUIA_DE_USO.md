@@ -33,6 +33,10 @@
 
 ## ✅ PASSO 0 — Abrir o projeto no OpenCode
 
+> 🔗 **Ainda não tem o OpenCode?** Baixe e instale (Windows 64-bit):
+> **https://opencode.ai/br/download/stable/windows-x64-nsis**
+> Execute o instalador e clique **Next / Install** até o fim.
+
 1. Abra o **OpenCode**.
 2. Abra a pasta do projeto. A pasta certa é a que tem o arquivo **`package.json`**:
 

@@ -10,6 +10,18 @@ Protótipo web educacional que faz três coisas:
 
 ---
 
+## ⬇️ Downloads (Windows 64-bit)
+
+| Programa | Para quê | Link |
+|---|---|---|
+| **OpenCode** | assistente que roda os comandos por você | https://opencode.ai/br/download/stable/windows-x64-nsis |
+| **Node.js 24** | roda o app | https://nodejs.org/dist/v24.17.0/node-v24.17.0-x64.msi |
+| **Python 3.12** | parte do NotebookLM | https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe |
+
+> ⚠️ No instalador do **Python**, marque ☑️ **"Add python.exe to PATH"** na primeira tela.
+
+---
+
 ## 📖 Guia do aluno
 
 Instalação e uso completos (como rodar, preencher o BEP, importar EIR, carregar IFC, gerar a análise): veja **[GUIA_DE_USO.md](GUIA_DE_USO.md)**.
