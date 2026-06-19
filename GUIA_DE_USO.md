@@ -205,9 +205,50 @@ Erros mais comuns e a causa:
 | `'pip' não é reconhecido` | Python sem "Add to PATH" | Reinstale o Python marcando **"Add Python to PATH"** (Passo 3). |
 | `The browser window was closed during login` (depois, no app) | Faltou o Chromium | Rode só a parte 3: peça ao OpenCode **"rode `python -m playwright install chromium`"**. |
 | `EACCES` / `permission denied` | Falta de permissão | Peça ao OpenCode para rodar o terminal como administrador. |
+| `... cannot be loaded because running scripts is disabled on this system` | PowerShell bloqueia scripts (`.ps1`) | Veja o **Passo 4.2** logo abaixo. |
 
 > 💡 Se a **parte 1 (`npm install`) deu certo** mas a **2 ou 3 falhou**, o app já
 > roda — só a função NotebookLM fica indisponível até consertar o Python.
+
+---
+
+## 🛡️ PASSO 4.2 — Erro "running scripts is disabled" (PowerShell bloqueado)
+
+Por padrão o Windows **bloqueia a execução de scripts** no PowerShell. Como o `npm`
+no Windows é um script (`npm.ps1`), pode aparecer este erro **em vermelho**:
+
+```
+npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running
+scripts is disabled on this system.
+```
+
+(O mesmo erro pode aparecer ao ativar o ambiente do Python: `Activate.ps1`.)
+
+### Como corrigir (uma vez só por computador)
+
+1. Abra o **PowerShell como Administrador**:
+   - Menu Iniciar → digite **PowerShell** → clique com o **botão direito** em
+     **Windows PowerShell** → **"Executar como administrador"** → clique **"Sim"**.
+
+2. Cole este comando e aperte **Enter**:
+
+   ```powershell
+   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+   ```
+
+3. Se perguntar `Deseja alterar a política de execução? [S] Sim ...`, digite **`S`**
+   e aperte **Enter**.
+
+4. **Feche** esse PowerShell admin, **reabra** o terminal normal (ou o OpenCode) e
+   rode de novo: `npm run setup`.
+
+> ✅ **O que isso faz:** `RemoteSigned` libera scripts criados na sua própria máquina
+> (como o `npm`) e mantém bloqueados scripts baixados da internet sem assinatura —
+> é o ajuste **seguro e recomendado** pela Microsoft. Não precisa usar `Unrestricted`.
+
+> 💡 **Peça ao OpenCode** se preferir:
+> > **Apareceu o erro "running scripts is disabled" no PowerShell. Me diga como abrir
+> > o PowerShell como administrador e qual comando Set-ExecutionPolicy rodar.**
 
 ---
 
