@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@media print {
+  @page {
+    margin: 10mm;
+    size: A4;
+  }
+
+  body {
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide UI elements */
+  aside, 
+  header button, 
+  header .relative, /* Import button container */
+  .no-print,
+  button[class*="bg-orange-50"], /* Add buttons */
+  button[class*="text-slate-400"] /* Delete buttons */
+  {
+    display: none !important;
+  }
+
+  /* Reset layout constraints */
+  .flex, .h-screen, .overflow-hidden {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  #main-scroll {
+    overflow: visible !important;
+  }
+
+  .max-w-4xl {
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* Block styling */
+  .bg-white {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 24pt !important;
+    color: black !important;
+    margin-bottom: 10px !important;
+  }
+
+  h3, h4 {
+    color: black !important;
+    font-weight: bold !important;
+  }
+
+  /* Tables */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    color: black !important;
+    font-weight: bold !important;
+    border: 1px solid #000 !important;
+  }
+
+  td {
+    border: 1px solid #000 !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Inputs/Textareas to look like text */
+  input, textarea {
+    border: none !important;
+    background: transparent !important;
+    resize: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    color: black !important;
+    font-family: inherit !important;
+  }
+  
+  /* Remove placeholders in print */
+  input::placeholder, textarea::placeholder {
+    color: transparent !important;
+  }
+}

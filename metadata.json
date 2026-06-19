@@ -1,0 +1,6 @@
+{
+  "name": "BEP.ai",
+  "description": "AI-powered assistant for creating BIM Execution Plans (BEP) aligned with ISO 19650 and NBR 15965.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
