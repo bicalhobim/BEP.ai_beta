@@ -2,12 +2,13 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
+import {notebooklmBridge} from './vite-plugin-notebooklm.mjs';
 
 // API keys are read in the app via import.meta.env.VITE_* (Vite-native), so no
 // `define` shim is needed. Set VITE_GROQ_API_KEY etc. in your .env.
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), notebooklmBridge()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

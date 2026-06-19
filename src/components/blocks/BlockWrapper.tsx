@@ -22,17 +22,29 @@ export function BlockWrapper({ block, children }: BlockWrapperProps) {
     isDragging
   } = useSortable({ id: block.id });
 
-  const { toggleBlock, removeBlock, updateBlockContent, isoContext } = useBEPStore();
+  const { toggleBlock, removeBlock, updateBlockContent, isoContext, aiProviderId, notebookId } = useBEPStore();
   const [generating, setGenerating] = useState(false);
 
+  const usingNotebookLM = aiProviderId === 'notebooklm';
+
   const handleGenerate = async () => {
-    if (!isoContext) {
+    if (usingNotebookLM) {
+      if (!notebookId) {
+        alert('Selecione um projeto do NotebookLM (botão "NotebookLM" no topo) antes de gerar.');
+        return;
+      }
+    } else if (!isoContext) {
       alert('Importe um documento (PDF) primeiro para gerar esta seção com IA.');
       return;
     }
     setGenerating(true);
     try {
-      const content = await generateSection(block.type, isoContext);
+      // No modo NotebookLM a fonte vive no notebook conectado; não embutimos
+      // texto local. Nos demais, usamos o texto extraído do PDF (isoContext).
+      const ctx = usingNotebookLM
+        ? isoContext || 'Use as fontes (edital/EIR) deste notebook como referência.'
+        : isoContext;
+      const content = await generateSection(block.type, ctx);
       updateBlockContent(block.id, content);
       if (!block.isExpanded) toggleBlock(block.id);
     } catch (e) {

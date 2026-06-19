@@ -16,7 +16,7 @@ export const ACTIVE_PROVIDER = 'deepseek' as const;
 // Confirm the exact model IDs available to you at https://api-docs.deepseek.com/quick_start/pricing
 const DEEPSEEK_DEFAULTS = {
   fast: 'deepseek-v4-flash',
-  pro: 'deepseek-v4-flash',
+  pro: 'deepseek-v4-pro',
 } satisfies Record<ModelTier, string>;
 
 export const DEEPSEEK_MODELS: Record<ModelTier, string> = {

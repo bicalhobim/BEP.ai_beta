@@ -18,15 +18,19 @@ Diretrizes:
 export async function suggestContent(context: string, prompt: string, json: boolean = false) {
   const fullPrompt = `
   Contexto do Projeto (Edital/EIR):
-  "${context.substring(0, 10000)}"
+  """
+  ${context.substring(0, 60000)}
+  """
 
   Tarefa:
   ${prompt}
 
-  ${json ? "Formato de Resposta: APENAS um JSON válido (sem blocos de código ```json). Se for uma lista, retorne um array." : "Responda apenas com o conteúdo solicitado, de forma direta e técnica (ISO 19650)."}
+  ${json
+    ? 'Formato de Resposta: APENAS um JSON válido (sem blocos de código ```). Retorne um OBJETO contendo uma única propriedade cujo valor é o array de itens solicitado (ex.: {"items": [ ... ]}). Todos os valores de campo devem ser strings simples — nunca números soltos nem arrays aninhados.'
+    : 'Responda apenas com o conteúdo solicitado, de forma direta e técnica (ISO 19650).'}
   `;
 
-  return aiProvider.generate({ prompt: fullPrompt, system: SYSTEM_INSTRUCTION, json, tier: 'fast' });
+  return aiProvider.generate({ prompt: fullPrompt, system: SYSTEM_INSTRUCTION, json, tier: 'pro' });
 }
 
 export async function extractEIR(text: string) {

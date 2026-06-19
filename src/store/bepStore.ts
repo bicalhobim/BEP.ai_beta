@@ -7,6 +7,9 @@ import {
   deleteProjectData,
   type ProjectMeta,
 } from '../lib/projects';
+import { readSessionPdf, writeSessionPdf, clearSessionPdf } from '../lib/sessionPdf';
+import { getActiveProviderId, setActiveProvider } from '../lib/ai';
+import { getNotebookId, setNotebookId } from '../lib/ai/providers/notebooklm';
 
 export type BlockType =
   | 'general_project'
@@ -200,12 +203,18 @@ const BLOCK_TITLES: Record<BlockType, string> = {
 interface BEPState {
   blocks: BlockData[];
   isoContext: string;
+  importedFileName: string;
   activeView: 'home' | 'editor' | 'kanban' | 'ifc';
   currentProjectId: string | null;
   currentProjectName: string;
   projects: ProjectMeta[];
   setActiveView: (view: 'home' | 'editor' | 'kanban' | 'ifc') => void;
-  setIsoContext: (text: string) => void;
+  setIsoContext: (text: string, fileName?: string) => void;
+  // Provedor de IA + projeto NotebookLM
+  aiProviderId: string;
+  notebookId: string;
+  setAiProvider: (id: string) => void;
+  setNotebookId: (id: string) => void;
   // Projetos
   refreshProjects: () => void;
   createProject: (name: string) => void;
@@ -222,16 +231,33 @@ interface BEPState {
   expandAllBlocks: () => void;
 }
 
+// Restaura o documento importado da sessão (sobrevive a reloads; some ao fechar o
+// navegador). Mantém o auto-preencher funcionando sem reimportar o PDF.
+const sessionPdf = readSessionPdf();
+
 export const useBEPStore = create<BEPState>((set) => ({
   blocks: createDefaultBlocks(),
-  isoContext: '',
+  isoContext: sessionPdf?.text ?? '',
+  importedFileName: sessionPdf?.fileName ?? '',
   activeView: 'home',
   currentProjectId: null,
   currentProjectName: '',
   projects: listProjectsMeta(),
 
   setActiveView: (view) => set({ activeView: view }),
-  setIsoContext: (text) => set({ isoContext: text }),
+  setIsoContext: (text, fileName) =>
+    set(fileName !== undefined ? { isoContext: text, importedFileName: fileName } : { isoContext: text }),
+
+  aiProviderId: getActiveProviderId(),
+  notebookId: getNotebookId(),
+  setAiProvider: (id) => {
+    setActiveProvider(id);
+    set({ aiProviderId: getActiveProviderId() });
+  },
+  setNotebookId: (id) => {
+    setNotebookId(id);
+    set({ notebookId: id });
+  },
 
   refreshProjects: () => set({ projects: listProjectsMeta() }),
 
@@ -245,6 +271,7 @@ export const useBEPStore = create<BEPState>((set) => ({
       currentProjectName: projectName,
       blocks,
       isoContext: '',
+      importedFileName: '',
       activeView: 'editor',
       projects: listProjectsMeta(),
     });
@@ -258,6 +285,7 @@ export const useBEPStore = create<BEPState>((set) => ({
       currentProjectName: data.name,
       blocks: data.blocks,
       isoContext: data.isoContext ?? '',
+      importedFileName: '',
       activeView: 'editor',
     });
   },
@@ -273,6 +301,7 @@ export const useBEPStore = create<BEPState>((set) => ({
           currentProjectName: '',
           blocks: createDefaultBlocks(),
           isoContext: '',
+          importedFileName: '',
           activeView: 'home' as const,
         };
       }
@@ -290,6 +319,7 @@ export const useBEPStore = create<BEPState>((set) => ({
       currentProjectName: projectName,
       blocks,
       isoContext,
+      importedFileName: '',
       activeView: 'editor',
       projects: listProjectsMeta(),
     });
@@ -341,4 +371,16 @@ useBEPStore.subscribe((state, prev) => {
     });
     useBEPStore.setState({ projects: listProjectsMeta() });
   }, 500);
+});
+
+// Espelha o documento importado na sessão do navegador (sessionStorage). Sobrevive a
+// reloads; some ao fechar a aba/navegador. Mantém sincronia com o isoContext atual,
+// cobrindo import, abrir/criar/deletar projeto.
+useBEPStore.subscribe((state, prev) => {
+  if (state.isoContext === prev.isoContext && state.importedFileName === prev.importedFileName) return;
+  if (state.isoContext) {
+    writeSessionPdf(state.isoContext, state.importedFileName);
+  } else {
+    clearSessionPdf();
+  }
 });

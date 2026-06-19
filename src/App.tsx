@@ -7,9 +7,10 @@ import { Editor } from './components/layout/Editor';
 import { KanbanBoard } from './components/layout/KanbanBoard';
 import { Home } from './components/layout/Home';
 import { motion, AnimatePresence } from 'motion/react';
-import { Download, FileDown, Upload, Loader2, Sparkles, Save, FolderOpen } from 'lucide-react';
+import { Download, FileDown, Upload, Loader2, Sparkles, Save, FolderOpen, CheckCircle2 } from 'lucide-react';
 import { exportToPDF } from './lib/export';
 import { extractTextFromPDF } from './lib/pdf';
+import { NotebookLMConnect } from './components/ui/NotebookLMConnect';
 
 // Code-split the IFC viewer: three.js + ThatOpen are heavy and shouldn't be in
 // the initial bundle.
@@ -18,8 +19,14 @@ const IfcAnalysis = lazy(() =>
 );
 
 function App() {
-  const { blocks, reorderBlocks, expandAllBlocks, setIsoContext, isoContext, importProject, currentProjectName, activeView } = useBEPStore();
+  const { blocks, reorderBlocks, expandAllBlocks, setIsoContext, isoContext, importedFileName, importProject, currentProjectName, activeView } = useBEPStore();
   const [isImporting, setIsImporting] = useState(false);
+  // Toast efêmero (some sozinho). Substitui o alert() bloqueante de sucesso.
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    window.setTimeout(() => setToast(null), 3500);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -167,11 +174,11 @@ function App() {
       // Extrai o texto do PDF e guarda como contexto. O preenchimento agora é
       // feito por seção (botão "Gerar IA" em cada bloco), o que reduz a variância.
       const text = await extractTextFromPDF(file);
-      setIsoContext(text);
-      alert('Documento importado! Use o botão "Gerar IA" em cada seção do BEP para preencher a partir dele.');
+      setIsoContext(text, file.name);
+      showToast('Documento importado! Use "Gerar IA" em cada seção para preencher.');
     } catch (error) {
       console.error("Global Import Failed", error);
-      alert("Falha na importação do PDF.");
+      alert(error instanceof Error ? error.message : "Falha na importação do PDF.");
     } finally {
       setIsImporting(false);
     }
@@ -183,6 +190,22 @@ function App() {
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
+      {/* Toast efêmero (some sozinho após ~3,5s) */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-slate-900 text-white text-sm font-medium rounded-lg shadow-lg max-w-sm"
+          >
+            <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Sidebar />
       
       <main className="flex-1 overflow-hidden" id="main-scroll">
@@ -214,8 +237,15 @@ function App() {
                     <p className="text-slate-500 mt-2">
                       ISO 19650 & NBR 15965 · Plano de Execução BIM
                     </p>
+                    {isoContext && (
+                      <p className="text-xs text-orange-700 mt-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        Documento carregado{importedFileName ? `: ${importedFileName}` : ''} · disponível para "Gerar IA" (mantido até fechar o navegador)
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-2">
+                    <NotebookLMConnect />
                     <div className="relative">
                       <input
                         type="file"

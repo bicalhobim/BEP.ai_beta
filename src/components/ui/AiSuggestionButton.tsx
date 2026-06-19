@@ -12,19 +12,39 @@ interface Props {
 }
 
 export function AiSuggestionButton({ prompt, onSuggest, className, label = "Sugerir", json = false }: Props) {
-  const { isoContext } = useBEPStore();
+  const { isoContext, aiProviderId, notebookId } = useBEPStore();
   const [loading, setLoading] = useState(false);
 
+  const usingNotebookLM = aiProviderId === 'notebooklm';
+  const ready = usingNotebookLM ? Boolean(notebookId) : Boolean(isoContext);
+
   const handleSuggest = async () => {
-    if (!isoContext) {
-      alert("Por favor, importe um PDF (EIR) primeiro para usar a IA.");
+    if (!ready) {
+      alert(
+        usingNotebookLM
+          ? 'Selecione um projeto do NotebookLM no topo antes de usar a IA.'
+          : 'Por favor, importe um PDF (EIR) primeiro para usar a IA.'
+      );
       return;
     }
 
     setLoading(true);
     try {
       const suggestion = await suggestContent(isoContext, prompt, json);
-      onSuggest(json ? JSON.parse(suggestion) : suggestion);
+      if (!json) {
+        onSuggest(suggestion);
+        return;
+      }
+      const parsed = JSON.parse(suggestion);
+      // O modo json_object da IA frequentemente devolve a lista dentro de um
+      // objeto ({ goals: [...] }) em vez de um array puro. TODOS os consumidores
+      // (ScopeBlock, InfraBlock, LODBlock, etc.) esperam array e descartam objeto
+      // em silêncio. Normaliza: se vier objeto com uma propriedade array, usa ela.
+      const normalized =
+        parsed && !Array.isArray(parsed) && typeof parsed === 'object'
+          ? (Object.values(parsed).find((v) => Array.isArray(v)) ?? parsed)
+          : parsed;
+      onSuggest(normalized);
     } catch (error) {
       console.error("Suggestion failed", error);
       alert("Falha ao gerar sugestão.");
@@ -33,7 +53,7 @@ export function AiSuggestionButton({ prompt, onSuggest, className, label = "Suge
     }
   };
 
-  if (!isoContext) return null;
+  if (!ready) return null;
 
   return (
     <button

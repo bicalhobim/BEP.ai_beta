@@ -60,7 +60,11 @@ const SECTION_SPECS: Partial<Record<BlockType, SectionSpec>> = {
   },
   bim_uses_goals: {
     label: 'Usos BIM (Objetivos)',
-    instruction: 'Liste os objetivos organizacionais e os Usos BIM aplicáveis, por prioridade.',
+    instruction:
+      'Liste os objetivos organizacionais BIM e os Usos BIM aplicáveis, ordenados por prioridade. ' +
+      '"priority" deve ser uma STRING numérica ("1" = mais alta, "2", "3"...). ' +
+      '"objective" e "uses" devem ser STRINGS de texto corrido (não use arrays nem números soltos); ' +
+      'se houver vários usos, junte-os numa única string separada por vírgulas.',
     shape: `{
   "goals": [{ "priority": "1", "objective": "", "uses": "" }]
 }`,
@@ -116,14 +120,24 @@ export function sectionLabel(type: BlockType): string | undefined {
 }
 
 /** Gera o conteúdo de UMA seção do BEP a partir do contexto (documentos). */
+// Máximo de caracteres do documento enviados por seção. DeepSeek v4 tem contexto
+// amplo; 60k cortava editais grandes (100+ págs) e deixava campos vazios.
+const CONTEXT_CHAR_LIMIT = 120000;
+
 export async function generateSection(type: BlockType, context: string): Promise<any> {
   const spec = SECTION_SPECS[type];
   if (!spec) throw new Error(`Seção não suporta geração por IA: ${type}`);
 
+  if (context.length > CONTEXT_CHAR_LIMIT) {
+    console.warn(
+      `[generateSection] Documento truncado de ${context.length} para ${CONTEXT_CHAR_LIMIT} caracteres na seção "${type}". Dados após o corte ficam invisíveis para a IA.`
+    );
+  }
+
   const prompt = `
 Documentos de referência:
 """
-${context.substring(0, 60000)}
+${context.substring(0, CONTEXT_CHAR_LIMIT)}
 """
 
 Tarefa: ${spec.instruction}

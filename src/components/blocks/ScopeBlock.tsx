@@ -14,11 +14,13 @@ export function ScopeBlock({ block }: Props) {
   const handleAiSuggest = (suggestions: any[]) => {
     if (!Array.isArray(suggestions)) return;
     
-    // Map suggestions to match our structure if needed, or assume AI follows instructions
-    const newGoals = suggestions.map(s => ({
-      priority: s.priority || '2',
-      objective: s.objective || '',
-      uses: s.uses || ''
+    // Coerção defensiva: a IA às vezes devolve priority como número e uses como
+    // array. O select compara priority com strings ("1".."3") e o input de uses
+    // espera string — sem coagir, o campo fica vazio/quebrado.
+    const newGoals = suggestions.map((s) => ({
+      priority: String(s.priority ?? '2'),
+      objective: typeof s.objective === 'string' ? s.objective : String(s.objective ?? ''),
+      uses: Array.isArray(s.uses) ? s.uses.join(', ') : (s.uses ?? ''),
     }));
 
     updateBlockContent(block.id, { 
