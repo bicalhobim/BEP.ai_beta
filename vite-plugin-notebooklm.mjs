@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 //
 // Por que aqui e não num servidor separado: o app é só frontend (navegador) e
 // NÃO pode chamar o CLI `notebooklm` nem alcançar o RPC do Google diretamente.
-// Como middleware do Vite, as rotas ficam na MESMA origem (localhost:3000),
+// Como middleware do Vite, as rotas ficam na MESMA origem (localhost:3003),
 // sem CORS e sem 2º processo — `npm run dev` já sobe tudo. Pensado para aula.
 //
 // Pré-requisito (uma vez por máquina):

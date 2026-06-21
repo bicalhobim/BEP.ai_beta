@@ -283,13 +283,13 @@ aparece algo assim:
 
 ```
 VITE v6.x  ready in 800 ms
-➜  Local:   http://localhost:3000/
+➜  Local:   http://localhost:3003/
 ```
 
 ➡️ **Abra o navegador** (Chrome/Edge) e acesse:
 
 ```
-http://localhost:3000
+http://localhost:3003
 ```
 
 🎉 **Pronto!** O BEP.ai está rodando no seu computador.
@@ -329,7 +329,7 @@ Frases para digitar no OpenCode, em ordem:
 8. No app, clique em "NotebookLM" → Conectar → faça login e escolha o notebook.
 ```
 
-Abra **http://localhost:3000** no navegador. Fim. ✅
+Abra **http://localhost:3003** no navegador. Fim. ✅
 
 ---
 

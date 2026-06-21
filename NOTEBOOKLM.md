@@ -24,7 +24,7 @@ precisa rodar nada no terminal).
 ## Uso em aula
 
 ```bash
-npm run dev              # abre em http://localhost:3000
+npm run dev              # abre em http://localhost:3003
 ```
 
 No app (tudo pela tela):
