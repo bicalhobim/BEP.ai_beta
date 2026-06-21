@@ -35,10 +35,10 @@
 
 Primeiro você precisa ter os arquivos do projeto no seu computador.
 
-1. Abra no navegador: **https://github.com/ZapObras-Tech/bep.ai_beta**
+1. Abra no navegador: **https://github.com/bicalhobim/BEP.ai_beta**
 2. Clique no botão verde **`< > Code`** → **"Download ZIP"**.
 3. **Extraia** o ZIP (botão direito → *Extrair tudo*) em uma pasta fácil, ex.: `Downloads`.
-4. A pasta extraída pode se chamar `bep.ai_beta-main` — é normal. Dentro dela está o
+4. A pasta extraída pode se chamar `BEP.ai_beta-main` — é normal. Dentro dela está o
    `package.json`.
 
 > 🔗 **Ainda não tem o OpenCode?** Baixe e instale (Windows 64-bit):
@@ -53,7 +53,7 @@ Primeiro você precisa ter os arquivos do projeto no seu computador.
 2. Abra a pasta do projeto. A pasta certa é a que tem o arquivo **`package.json`**:
 
    ```
-   C:\Users\aluno\Downloads\bep.ai_beta-main
+   C:\Users\aluno\Downloads\BEP.ai_beta-main
    ```
 
 3. Para confirmar que está na pasta certa, **peça ao OpenCode**:
